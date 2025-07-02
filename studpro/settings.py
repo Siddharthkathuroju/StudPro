@@ -33,6 +33,9 @@ ALLOWED_HOSTS = [
     os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
     "127.0.0.1",
 ]
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}"
+] if os.environ.get("RENDER_EXTERNAL_HOSTNAME") else []
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
