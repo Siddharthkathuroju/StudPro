@@ -1,0 +1,112 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Chat with {{ other_user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Chat Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    {% if other_user.userprofile.avatar %}
+                        <img src="{{ other_user.userprofile.avatar.url }}" alt="{{ other_user.get_full_name }}" class="w-12 h-12 rounded-full object-cover mr-4">
+                    {% else %}
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                            {{ other_user.first_name|first|upper }}{{ other_user.last_name|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">{{ other_user.get_full_name }}</h1>
+                        <p class="text-sm text-gray-600">@{{ other_user.username }}</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    {% if is_connected %}
+                        <a href="{% url 'schedule_video_call' other_user.id %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                            Video Call
+                        </a>
+                    {% else %}
+                        <span class="text-yellow-600 text-sm font-medium">Not Connected</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6" style="height: 500px;">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Messages</h2>
+            </div>
+            <div class="p-4 overflow-y-auto" style="height: 400px;" id="messagesContainer">
+                {% if messages %}
+                    <div class="space-y-6">
+                        {% regroup messages by sender as message_list %}
+                        {% for sender_group in message_list %}
+                            <div class="flex {% if sender_group.grouper == request.user %}justify-end{% else %}justify-start{% endif %}">
+                                <div class="max-w-xs lg:max-w-md">
+                                    <!-- User Avatar (only for other user's messages) -->
+                                    {% if sender_group.grouper != request.user %}
+                                        <div class="flex items-end mb-2">
+                                            {% if other_user.userprofile.avatar %}
+                                                <img src="{{ other_user.userprofile.avatar.url }}" alt="{{ other_user.get_full_name }}" class="w-8 h-8 rounded-full object-cover mr-2">
+                                            {% else %}
+                                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold mr-2">
+                                                    {{ other_user.first_name|first|upper }}{{ other_user.last_name|first|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Message Bubble Group -->
+                                    <div class="{% if sender_group.grouper == request.user %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-900{% endif %} rounded-2xl px-4 py-3">
+                                        {% for message in sender_group.list %}
+                                            <div class="{% if not forloop.first %}mt-2 pt-2 border-t {% if sender_group.grouper == request.user %}border-blue-500{% else %}border-gray-200{% endif %}{% endif %}">
+                                                <p class="text-sm leading-relaxed">{{ message.message }}</p>
+                                                <p class="text-xs {% if sender_group.grouper == request.user %}text-blue-100{% else %}text-gray-500{% endif %} mt-1">
+                                                    {{ message.timestamp|date:"g:i a" }}
+                                                </p>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-12">
+                        <div class="bg-gray-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No messages yet</h3>
+                        <p class="text-gray-600">Start a conversation with {{ other_user.first_name }}!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <form method="POST" class="flex space-x-4">
+                {% csrf_token %}
+                <div class="flex-1">
+                    {{ form.message }}
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-scroll to bottom of messages
+    const messagesContainer = document.getElementById('messagesContainer');
+    if (messagesContainer) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+</script>
+{% endblock %} 

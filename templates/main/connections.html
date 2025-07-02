@@ -1,0 +1,121 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Connections{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Connections</h1>
+        <p class="text-gray-600">Manage your professional network</p>
+    </div>
+
+    <!-- Pending Requests -->
+    {% if pending_received %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Pending Requests</h2>
+            <div class="space-y-4">
+                {% for connection in pending_received %}
+                    <div class="flex items-center justify-between p-4 border border-gray-100 rounded-lg">
+                        <div class="flex items-center">
+                            {% if connection.sender.userprofile.avatar %}
+                                <img src="{{ connection.sender.userprofile.avatar.url }}" alt="{{ connection.sender.get_full_name }}" class="w-12 h-12 rounded-full object-cover mr-4">
+                            {% else %}
+                                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                                    {{ connection.sender.first_name|first|upper }}{{ connection.sender.last_name|first|upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-medium text-gray-900">{{ connection.sender.get_full_name }}</h3>
+                                <p class="text-sm text-gray-600">@{{ connection.sender.username }}</p>
+                                {% if connection.message %}
+                                    <p class="text-sm text-gray-700 mt-1">{{ connection.message }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{% url 'accept_connection' connection.id %}" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                                Accept
+                            </a>
+                            <a href="{% url 'reject_connection' connection.id %}" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                                Decline
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Accepted Connections -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Your Connections</h2>
+        {% if accepted_connections %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for connection in accepted_connections %}
+                    {% if connection.sender == request.user %}
+                        {% with user=connection.receiver %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-center mb-3">
+                                    {% if user.userprofile.avatar %}
+                                        <img src="{{ user.userprofile.avatar.url }}" alt="{{ user.get_full_name }}" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">{{ user.get_full_name }}</h3>
+                                        <p class="text-sm text-gray-600">@{{ user.username }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'direct_message' user.id %}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                        Message
+                                    </a>
+                                    <a href="{% url 'schedule_video_call' user.id %}" class="flex-1 bg-purple-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                                        Video Call
+                                    </a>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% else %}
+                        {% with user=connection.sender %}
+                            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-center mb-3">
+                                    {% if user.userprofile.avatar %}
+                                        <img src="{{ user.userprofile.avatar.url }}" alt="{{ user.get_full_name }}" class="w-12 h-12 rounded-full object-cover mr-3">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-3">
+                                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <h3 class="font-medium text-gray-900">{{ user.get_full_name }}</h3>
+                                        <p class="text-sm text-gray-600">@{{ user.username }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'direct_message' user.id %}" class="flex-1 bg-blue-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                        Message
+                                    </a>
+                                    <a href="{% url 'schedule_video_call' user.id %}" class="flex-1 bg-purple-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                                        Video Call
+                                    </a>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No connections yet</h3>
+                <p class="text-gray-600 mb-4">Start building your network by connecting with other users.</p>
+                <a href="{% url 'networking' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                    Discover People
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

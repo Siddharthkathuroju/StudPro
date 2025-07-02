@@ -1,0 +1,63 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Create Folder - StudPro{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-md mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Create New Folder</h1>
+            <p class="text-gray-600">
+                {% if parent_folder %}
+                    Creating folder in: <span class="font-medium">{{ parent_folder.get_full_path }}</span>
+                {% else %}
+                    Creating folder in root directory
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="id_name" class="block text-sm font-medium text-gray-700 mb-2">Folder Name</label>
+                    <input type="text" name="name" id="id_name" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Enter folder name..."
+                           value="{{ form.name.value|default:'' }}">
+                    {% if form.name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                {% if form.parent_folder %}
+                <div>
+                    <label for="id_parent_folder" class="block text-sm font-medium text-gray-700 mb-2">Parent Folder (Optional)</label>
+                    <select name="parent_folder" id="id_parent_folder"
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        {{ form.parent_folder }}
+                    </select>
+                    {% if form.parent_folder.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.parent_folder.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'files' parent_folder.id if parent_folder else None %}" 
+                       class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        Create Folder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

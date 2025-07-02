@@ -1,0 +1,228 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Manage Invites - {{ group.name }} - StudPro{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-2xl mx-auto">
+        <!-- Header -->
+        <div class="mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Manage Invite Links</h1>
+                    <p class="text-gray-600 mt-1">{{ group.name }}</p>
+                </div>
+                <a href="{% url 'group_detail' group.id %}" class="text-blue-600 hover:text-blue-800">
+                    ← Back to Group
+                </a>
+            </div>
+        </div>
+
+        <!-- Current Invite Status -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Current Invite Link</h2>
+            
+            {% if group.invite_enabled and group.is_invite_valid %}
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-green-800 font-medium">Active</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Invite Code</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="{{ group.invite_code }}" readonly 
+                                   class="flex-1 p-3 bg-gray-50 border border-gray-300 rounded-lg font-mono text-sm">
+                            <button onclick="copyToClipboard('{{ group.invite_code }}', this)" 
+                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Full Invite Link</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="{{ request.scheme }}://{{ request.get_host }}{% url 'join_group_invite' group.invite_code %}" readonly 
+                                   class="flex-1 p-3 bg-gray-50 border border-gray-300 rounded-lg text-sm">
+                            <button onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{% url 'join_group_invite' group.invite_code %}', this)" 
+                                    class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {% if group.invite_expires_at %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Expires</label>
+                        <p class="text-sm text-gray-600">{{ group.invite_expires_at|date:"F d, Y g:i A" }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-red-800 font-medium">
+                            {% if not group.invite_enabled %}
+                                Disabled
+                            {% else %}
+                                Expired
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
+            
+            <div class="space-y-4">
+                <!-- Create/Regenerate Invite -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-3">
+                        {% if group.invite_enabled and group.is_invite_valid %}
+                            Regenerate Invite Link
+                        {% else %}
+                            Create New Invite Link
+                        {% endif %}
+                    </h3>
+                    
+                    <form method="post" class="space-y-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="{% if group.invite_enabled and group.is_invite_valid %}regenerate_invite{% else %}create_invite{% endif %}">
+                        
+                        <div>
+                            <label for="expires_days" class="block text-sm font-medium text-gray-700 mb-1">Expires in (days)</label>
+                            <select name="expires_days" id="expires_days" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="1">1 day</option>
+                                <option value="3">3 days</option>
+                                <option value="7" selected>7 days</option>
+                                <option value="14">14 days</option>
+                                <option value="30">30 days</option>
+                                <option value="0">Never expires</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            {% if group.invite_enabled and group.is_invite_valid %}
+                                Regenerate Link
+                            {% else %}
+                                Create Link
+                            {% endif %}
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Disable Invite -->
+                {% if group.invite_enabled and group.is_invite_valid %}
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-3">Disable Invite Link</h3>
+                    <p class="text-sm text-gray-600 mb-3">This will immediately disable the current invite link. You can create a new one anytime.</p>
+                    
+                    <form method="post" onsubmit="return confirm('Are you sure you want to disable this invite link?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="disable_invite">
+                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                            Disable Link
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+            <h3 class="font-medium text-blue-900 mb-2">How to use invite links</h3>
+            <ul class="text-sm text-blue-800 space-y-1">
+                <li>• Share the invite link with people you want to invite to the group</li>
+                <li>• Anyone with the link can join the group (if it's not full)</li>
+                <li>• You can disable or regenerate the link anytime</li>
+                <li>• Set expiration dates to control how long the link is valid</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(text, button) {
+    // Try the modern clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(function() {
+            showCopySuccess(button);
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyToClipboard(text, button);
+        });
+    } else {
+        // Fallback for older browsers or non-secure contexts
+        fallbackCopyToClipboard(text, button);
+    }
+}
+
+function fallbackCopyToClipboard(text, button) {
+    // Create a temporary textarea element
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    
+    // Select and copy the text
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess(button);
+        } else {
+            showCopyError(button);
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showCopyError(button);
+    }
+    
+    // Clean up
+    document.body.removeChild(textArea);
+}
+
+function showCopySuccess(button) {
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.classList.add('bg-green-100', 'text-green-800');
+    button.disabled = true;
+    
+    setTimeout(function() {
+        button.textContent = originalText;
+        button.classList.remove('bg-green-100', 'text-green-800');
+        button.disabled = false;
+    }, 2000);
+}
+
+function showCopyError(button) {
+    const originalText = button.textContent;
+    button.textContent = 'Failed!';
+    button.classList.add('bg-red-100', 'text-red-800');
+    button.disabled = true;
+    
+    setTimeout(function() {
+        button.textContent = originalText;
+        button.classList.remove('bg-red-100', 'text-red-800');
+        button.disabled = false;
+    }, 2000);
+}
+</script>
+{% endblock %} 

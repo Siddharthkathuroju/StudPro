@@ -1,0 +1,367 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}{{ group.name }} - StudPro{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">{{ group.name }}</h1>
+                <p class="text-sm text-gray-600">{{ group.description }}</p>
+                <div class="flex items-center mt-2 space-x-4 text-sm text-gray-500">
+                    <span>{{ group.member_count }} members</span>
+                    <span>•</span>
+                    <span>{{ group.privacy|title }}</span>
+                    {% if group.created_by == request.user %}
+                    <span>•</span>
+                    <span>Owner</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                {% if group.created_by == request.user %}
+                <a href="{% url 'manage_group_invite' group.id %}" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Manage Invites
+                </a>
+                {% if group.privacy == 'private' %}
+                <a href="{% url 'manage_join_requests' group.id %}" class="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 relative">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                    </svg>
+                    Manage Requests
+                    {% if pending_requests_count > 0 %}
+                    <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {{ pending_requests_count }}
+                    </span>
+                    {% endif %}
+                </a>
+                {% endif %}
+                {% endif %}
+                {% if is_member %}
+                <a href="{% url 'leave_group' group.id %}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700" onclick="return confirm('Are you sure you want to leave this group?')">
+                    Leave Group
+                </a>
+                {% else %}
+                    {% if group.privacy == 'private' %}
+                        <!-- Check if user has pending request -->
+                        {% if has_pending_request %}
+                        <span class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-lg">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                            </svg>
+                            Request Pending
+                        </span>
+                        {% else %}
+                        <button onclick="showJoinRequestModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Request to Join
+                        </button>
+                        {% endif %}
+                    {% else %}
+                    <a href="{% url 'join_group' group.id %}" class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">
+                        Join Group
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="flex-1 overflow-hidden">
+        <div id="messages-container" class="h-full overflow-y-auto p-6 space-y-6">
+            {% regroup messages by user as message_list %}
+            {% for sender_group in message_list %}
+            <div class="flex {% if sender_group.grouper == request.user %}justify-end{% else %}justify-start{% endif %}">
+                <div class="max-w-xs lg:max-w-md">
+                    <!-- User Info (only show for first message in group) -->
+                    <div class="flex items-center mb-2 {% if sender_group.grouper == request.user %}justify-end{% endif %}">
+                        <span class="text-xs text-gray-500 font-medium">{{ sender_group.grouper.first_name }} {{ sender_group.grouper.last_name }}</span>
+                        <span class="text-xs text-gray-400 ml-2">{{ sender_group.list.0.timestamp|date:"M d, g:i A" }}</span>
+                    </div>
+                    
+                    <!-- Message Group Content -->
+                    <div class="{% if sender_group.grouper == request.user %}bg-blue-600 text-white{% else %}bg-white border border-gray-200{% endif %} rounded-2xl p-4 shadow-sm">
+                        {% for message in sender_group.list %}
+                            <div class="{% if not forloop.first %}mt-3 pt-3 border-t {% if sender_group.grouper == request.user %}border-blue-500{% else %}border-gray-200{% endif %}{% endif %}">
+                                {% if message.message_type == 'text' %}
+                                    <div class="text-sm leading-relaxed">{{ message.message }}</div>
+                                
+                                {% elif message.message_type == 'image' %}
+                                    <div class="space-y-2">
+                                        {% if message.message %}
+                                        <div class="text-sm leading-relaxed">{{ message.message }}</div>
+                                        {% endif %}
+                                        <div class="relative">
+                                            <img src="{{ message.media_file.url }}" alt="Shared image" class="max-w-full rounded-lg">
+                                        </div>
+                                    </div>
+                                
+                                {% elif message.message_type == 'video' %}
+                                    <div class="space-y-2">
+                                        {% if message.message %}
+                                        <div class="text-sm leading-relaxed">{{ message.message }}</div>
+                                        {% endif %}
+                                        <div class="relative">
+                                            <video controls class="max-w-full rounded-lg">
+                                                <source src="{{ message.media_file.url }}" type="video/mp4">
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        </div>
+                                    </div>
+                                
+                                {% elif message.message_type == 'file' %}
+                                    <div class="space-y-2">
+                                        {% if message.message %}
+                                        <div class="text-sm leading-relaxed">{{ message.message }}</div>
+                                        {% endif %}
+                                        <div class="flex items-center p-2 {% if sender_group.grouper == request.user %}bg-blue-500{% else %}bg-gray-100{% endif %} rounded-lg">
+                                            <svg class="w-8 h-8 {% if sender_group.grouper == request.user %}text-blue-100{% else %}text-gray-500{% endif %} mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                                            </svg>
+                                            <div class="flex-1">
+                                                <div class="text-sm font-medium {% if sender_group.grouper == request.user %}text-white{% endif %}">{{ message.get_file_name }}</div>
+                                                <div class="text-xs {% if sender_group.grouper == request.user %}text-blue-100{% else %}text-gray-500{% endif %}">{{ message.get_file_size }}</div>
+                                            </div>
+                                            <a href="{{ message.media_file.url }}" target="_blank" class="{% if sender_group.grouper == request.user %}text-blue-100 hover:text-white{% else %}text-blue-600 hover:text-blue-800{% endif %}">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Individual message timestamp -->
+                                <p class="text-xs {% if sender_group.grouper == request.user %}text-blue-100{% else %}text-gray-500{% endif %} mt-1">
+                                    {{ message.timestamp|date:"g:i a" }}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No messages yet</h3>
+                <p class="mt-1 text-sm text-gray-500">Start the conversation by sending a message!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Message Input -->
+    {% if is_member %}
+    <div class="bg-white border-t border-gray-200 p-4">
+        <form method="post" enctype="multipart/form-data" class="space-y-3">
+            {% csrf_token %}
+            
+            <!-- Media Preview -->
+            <div id="media-preview" class="hidden">
+                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div id="preview-content" class="flex-1"></div>
+                    <button type="button" onclick="removeMedia()" class="text-red-600 hover:text-red-800">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="flex space-x-3">
+                <div class="flex-1 relative">
+                    {{ form.message }}
+                    <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex space-x-1">
+                        <button type="button" onclick="document.getElementById('media-input').click()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500">
+                    Send
+                </button>
+            </div>
+            
+            <!-- Hidden file input -->
+            {{ form.media_file }}
+        </form>
+    </div>
+    {% else %}
+    <div class="bg-white border-t border-gray-200 p-4">
+        <div class="text-center text-gray-500">
+            Join the group to send messages
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Auto-resize textarea
+document.getElementById('id_message').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// Handle media file selection
+document.getElementById('media-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        showMediaPreview(file);
+    }
+});
+
+function showMediaPreview(file) {
+    const preview = document.getElementById('media-preview');
+    const content = document.getElementById('preview-content');
+    
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            content.innerHTML = `
+                <div class="flex items-center">
+                    <img src="${e.target.result}" alt="Preview" class="w-16 h-16 object-cover rounded-lg mr-3">
+                    <div>
+                        <div class="text-sm font-medium">${file.name}</div>
+                        <div class="text-xs text-gray-500">${formatFileSize(file.size)}</div>
+                    </div>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    } else if (file.type.startsWith('video/')) {
+        content.innerHTML = `
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                    <svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-sm font-medium">${file.name}</div>
+                    <div class="text-xs text-gray-500">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+        `;
+    } else {
+        content.innerHTML = `
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                    <svg class="w-8 h-8 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="text-sm font-medium">${file.name}</div>
+                    <div class="text-xs text-gray-500">${formatFileSize(file.size)}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    preview.classList.remove('hidden');
+}
+
+function removeMedia() {
+    document.getElementById('media-input').value = '';
+    document.getElementById('media-preview').classList.add('hidden');
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('messages-container');
+    container.scrollTop = container.scrollHeight;
+});
+
+// Join Request Modal Functions
+function showJoinRequestModal() {
+    document.getElementById('join-request-modal').classList.remove('hidden');
+}
+
+function hideJoinRequestModal() {
+    document.getElementById('join-request-modal').classList.add('hidden');
+}
+
+function submitJoinRequest() {
+    const message = document.getElementById('join-request-message').value;
+    const form = document.getElementById('join-request-form');
+    const messageInput = document.createElement('input');
+    messageInput.type = 'hidden';
+    messageInput.name = 'message';
+    messageInput.value = message;
+    form.appendChild(messageInput);
+    form.submit();
+}
+</script>
+
+<!-- Join Request Modal -->
+<div id="join-request-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Request to Join {{ group.name }}</h3>
+                <button onclick="hideJoinRequestModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-3">
+                    This is a private group. Your request will be sent to the group owner for approval.
+                </p>
+                
+                <label for="join-request-message" class="block text-sm font-medium text-gray-700 mb-2">
+                    Message to group owner (optional)
+                </label>
+                <textarea 
+                    id="join-request-message" 
+                    rows="3" 
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Tell the group owner why you'd like to join..."
+                ></textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button 
+                    onclick="hideJoinRequestModal()" 
+                    class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                >
+                    Cancel
+                </button>
+                <form id="join-request-form" method="post" action="{% url 'join_group' group.id %}">
+                    {% csrf_token %}
+                    <button 
+                        type="button"
+                        onclick="submitJoinRequest()" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        Send Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

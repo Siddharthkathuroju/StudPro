@@ -1,0 +1,316 @@
+{% extends 'main/base_with_sidebar.html' %}
+{% load static %}
+
+{% block title %}AI Chatbot - StudPro{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">AI Study Assistant</h1>
+                <p class="text-sm text-gray-600">Get help with your studies, homework, and learning strategies</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="flex items-center text-sm text-gray-500">
+                    <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                    <span id="status-text">Ready</span>
+                </div>
+                <button onclick="clearChat()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="flex-1 overflow-hidden">
+        <div id="chat-container" class="h-full overflow-y-auto p-6 space-y-4">
+            <!-- Welcome Message -->
+            <div class="flex justify-center">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <svg class="w-8 h-8 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-2 0c0 .993-.241 1.929-.668 2.754l-1.524-1.525a3.997 3.997 0 00.078-2.183l1.562-1.562C15.802 8.249 16 9.1 16 10zm-5.165 3.913l1.58 1.58A5.98 5.98 0 0110 16a5.976 5.976 0 01-2.516-.552l1.562-1.562a4.006 4.006 0 001.789.027zm-4.677-2.796a4.002 4.002 0 01-.041-2.08l-.08.08-1.53-1.533A5.98 5.98 0 004 10c0 .954.223 1.856.619 2.657l1.54-1.54zm1.088-6.45A5.974 5.974 0 0110 4c.954 0 1.856.223 2.657.619l-1.54 1.54a4.002 4.002 0 00-2.346.033L7.246 4.668zM12 10a2 2 0 11-4 0 2 2 0 014 0z" clip-rule="evenodd"/>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-blue-900">Welcome to StudPro AI!</h3>
+                    </div>
+                    <p class="text-blue-800 text-sm mb-3">
+                        I'm here to help you with your studies. Ask me anything about:
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-blue-700">
+                        <div>📚 Study tips</div>
+                        <div>✏️ Homework help</div>
+                        <div>⏰ Time management</div>
+                        <div>📝 Writing assistance</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="messages-container"></div>
+        </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="bg-white border-t border-gray-200 p-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Error Message -->
+            <div id="error-message" class="hidden mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <span id="error-text" class="text-red-800 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Quota Warning -->
+            <div id="quota-warning" class="hidden mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="text-yellow-800 text-sm">
+                        <strong>Daily limit reached.</strong> You can still explore our study resources and connect with other students!
+                    </div>
+                </div>
+            </div>
+
+            <form id="chat-form" class="flex space-x-3">
+                <div class="flex-1 relative">
+                    <textarea 
+                        id="message-input" 
+                        rows="1"
+                        placeholder="Ask me anything about your studies..."
+                        class="w-full p-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                        style="min-height: 44px; max-height: 120px;"
+                    ></textarea>
+                    <button 
+                        type="button" 
+                        onclick="sendMessage()"
+                        id="send-button"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-blue-600 hover:text-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Quick Actions -->
+            <div class="mt-3 flex flex-wrap gap-2">
+                <button onclick="sendQuickMessage('How can I improve my study habits?')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors">
+                    Study Tips
+                </button>
+                <button onclick="sendQuickMessage('Help me with time management')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors">
+                    Time Management
+                </button>
+                <button onclick="sendQuickMessage('How to write a good essay?')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors">
+                    Essay Writing
+                </button>
+                <button onclick="sendQuickMessage('What are effective note-taking methods?')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors">
+                    Note Taking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isTyping = false;
+let chatHistory = [];
+
+// Auto-resize textarea
+document.getElementById('message-input').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+});
+
+// Send message on Enter (but allow Shift+Enter for new line)
+document.getElementById('message-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+function sendQuickMessage(message) {
+    document.getElementById('message-input').value = message;
+    sendMessage();
+}
+
+function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    
+    if (!message || isTyping) return;
+    
+    // Add user message to chat
+    addMessage('user', message);
+    input.value = '';
+    input.style.height = 'auto';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send to API
+    fetch('/chat-api/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        
+        if (data.error) {
+            showError(data.error);
+            
+            // Check if it's a quota error
+            if (data.error.toLowerCase().includes('quota') || data.error.toLowerCase().includes('limit')) {
+                showQuotaWarning();
+            }
+        } else {
+            hideError();
+            hideQuotaWarning();
+            addMessage('bot', data.response);
+        }
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        showError('Network error. Please check your connection and try again.');
+        console.error('Error:', error);
+    });
+}
+
+function addMessage(sender, content) {
+    const messagesContainer = document.getElementById('messages-container');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+    
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    messageDiv.innerHTML = `
+        <div class="max-w-xs lg:max-w-md ${sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200'} rounded-lg p-3 shadow-sm">
+            <div class="text-sm">${content}</div>
+            <div class="text-xs ${sender === 'user' ? 'text-blue-100' : 'text-gray-500'} mt-1">${timestamp}</div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(messageDiv);
+    scrollToBottom();
+    
+    // Store in history
+    chatHistory.push({ sender, content, timestamp });
+}
+
+function showTypingIndicator() {
+    isTyping = true;
+    document.getElementById('send-button').disabled = true;
+    document.getElementById('status-text').textContent = 'Typing...';
+    
+    const messagesContainer = document.getElementById('messages-container');
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'flex justify-start';
+    typingDiv.innerHTML = `
+        <div class="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+            <div class="flex items-center space-x-1">
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+            </div>
+        </div>
+    `;
+    
+    messagesContainer.appendChild(typingDiv);
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    isTyping = false;
+    document.getElementById('send-button').disabled = false;
+    document.getElementById('status-text').textContent = 'Ready';
+    
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+function showError(message) {
+    document.getElementById('error-text').textContent = message;
+    document.getElementById('error-message').classList.remove('hidden');
+}
+
+function hideError() {
+    document.getElementById('error-message').classList.add('hidden');
+}
+
+function showQuotaWarning() {
+    document.getElementById('quota-warning').classList.remove('hidden');
+}
+
+function hideQuotaWarning() {
+    document.getElementById('quota-warning').classList.add('hidden');
+}
+
+function scrollToBottom() {
+    const container = document.getElementById('chat-container');
+    container.scrollTop = container.scrollHeight;
+}
+
+function clearChat() {
+    if (confirm('Are you sure you want to clear the chat history?')) {
+        document.getElementById('messages-container').innerHTML = '';
+        chatHistory = [];
+        hideError();
+        hideQuotaWarning();
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Load chat history on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // You can load previous chat history here if needed
+    scrollToBottom();
+});
+</script>
+
+<style>
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}
+
+.animate-bounce {
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+</style>
+{% endblock %}

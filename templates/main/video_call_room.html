@@ -1,0 +1,94 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Video Call - {{ call.title }}{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-6xl mx-auto">
+        <!-- Call Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">{{ call.title }}</h1>
+                    <p class="text-gray-600">
+                        {% if call.initiator == request.user %}
+                            With {{ call.participant.get_full_name }}
+                        {% else %}
+                            With {{ call.initiator.get_full_name }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="flex space-x-2">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                        🟢 Live
+                    </span>
+                    <a href="{% url 'end_video_call' call.id %}" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                        End Call
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Call Interface -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="text-center py-12">
+                <div class="text-gray-400 mb-4">
+                    <svg class="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Video Call Room</h2>
+                <p class="text-gray-600 mb-6">Room ID: {{ call.room_id }}</p>
+                
+                <div class="bg-gray-100 rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Call Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <div>
+                            <p class="text-sm text-gray-600">Scheduled Time</p>
+                            <p class="font-medium">{{ call.scheduled_time|date:"M j, Y g:i A" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Duration</p>
+                            <p class="font-medium">{{ call.duration }} minutes</p>
+                        </div>
+                        <div class="md:col-span-2">
+                            <p class="text-sm text-gray-600">Description</p>
+                            <p class="font-medium">{{ call.description|default:"No description provided" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <p class="text-gray-600">This is a placeholder for the video call interface.</p>
+                    <p class="text-sm text-gray-500">In a real implementation, this would integrate with WebRTC or a video calling service like Twilio, Agora, or similar.</p>
+                </div>
+
+                <div class="mt-8 flex justify-center space-x-4">
+                    <button class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                        📹 Start Video
+                    </button>
+                    <button class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        🎤 Start Audio
+                    </button>
+                    <button class="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors">
+                        📱 Share Screen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Placeholder for video call functionality
+    console.log('Video call room loaded for call:', '{{ call.id }}');
+    console.log('Room ID:', '{{ call.room_id }}');
+    
+    // In a real implementation, you would:
+    // 1. Initialize WebRTC or video calling SDK
+    // 2. Set up peer connections
+    // 3. Handle media streams
+    // 4. Implement signaling server communication
+    // 5. Add UI controls for mute, camera, screen sharing, etc.
+</script>
+{% endblock %} 

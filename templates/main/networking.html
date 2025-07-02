@@ -1,0 +1,112 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}Networking - Discover People{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Discover People</h1>
+        <p class="text-gray-600">Connect with students and professionals in your field</p>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <form method="GET" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Users</label>
+                    {{ form.search }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Skills</label>
+                    {{ form.skills }}
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Search
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Users Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for user in users %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-6">
+                <!-- User Avatar and Basic Info -->
+                <div class="flex items-center mb-4">
+                    {% if user.userprofile.avatar %}
+                        <img src="{{ user.userprofile.avatar.url }}" alt="{{ user.get_full_name }}" class="w-16 h-16 rounded-full object-cover mr-4">
+                    {% else %}
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold mr-4">
+                            {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ user.get_full_name }}</h3>
+                        <p class="text-sm text-gray-600">@{{ user.username }}</p>
+                        {% if user.userprofile.company %}
+                            <p class="text-sm text-gray-500">{{ user.userprofile.company }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Bio -->
+                {% if user.userprofile.bio %}
+                    <p class="text-gray-700 text-sm mb-4">{{ user.userprofile.bio|truncatewords:20 }}</p>
+                {% endif %}
+
+                <!-- Skills -->
+                {% if user.userprofile.skills %}
+                    <div class="mb-4">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Skills</h4>
+                        <div class="flex flex-wrap gap-1">
+                            {% for skill in user.userprofile.skills|slice:":3" %}
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Connection Status and Actions -->
+                <div class="border-t border-gray-100 pt-4">
+                    {% if user.is_connected %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-green-600 text-sm font-medium">✓ Connected</span>
+                            <div class="flex space-x-2">
+                                <a href="{% url 'direct_message' user.id %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">Message</a>
+                                <a href="{% url 'schedule_video_call' user.id %}" class="text-purple-600 hover:text-purple-700 text-sm font-medium">Video Call</a>
+                            </div>
+                        </div>
+                    {% elif user.connection_status == 'pending_sent' %}
+                        <span class="text-yellow-600 text-sm font-medium">⏳ Request Sent</span>
+                    {% elif user.connection_status == 'pending_received' %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-blue-600 text-sm font-medium">📨 Request Received</span>
+                            <div class="flex space-x-2">
+                                <a href="{% url 'accept_connection' user.id %}" class="text-green-600 hover:text-green-700 text-sm font-medium">Accept</a>
+                                <a href="{% url 'reject_connection' user.id %}" class="text-red-600 hover:text-red-700 text-sm font-medium">Decline</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500 text-sm">Not Connected</span>
+                            <a href="{% url 'user_profile' user.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                Connect
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+            <p class="text-gray-600">Try adjusting your search criteria to find more people.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

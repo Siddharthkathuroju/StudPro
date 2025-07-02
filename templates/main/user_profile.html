@@ -1,0 +1,194 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block title %}{{ profile_user.get_full_name }} - Profile{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center">
+                    {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" alt="{{ profile_user.get_full_name }}" class="w-24 h-24 rounded-full object-cover mr-6">
+                    {% else %}
+                        <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mr-6">
+                            {{ profile_user.first_name|first|upper }}{{ profile_user.last_name|first|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ profile_user.get_full_name }}</h1>
+                        <p class="text-lg text-gray-600 mb-1">@{{ profile_user.username }}</p>
+                        {% if profile.company %}
+                            <p class="text-gray-700 mb-1">{{ profile.company }}</p>
+                        {% endif %}
+                        {% if profile.location %}
+                            <p class="text-gray-500 text-sm">📍 {{ profile.location }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Connection Actions -->
+                <div class="flex flex-col space-y-2">
+                    {% if is_connected %}
+                        <div class="text-center">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                ✓ Connected
+                            </span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="{% url 'direct_message' profile_user.id %}" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                                Message
+                            </a>
+                            <a href="{% url 'schedule_video_call' profile_user.id %}" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                                Video Call
+                            </a>
+                        </div>
+                    {% elif connection_status == 'pending_sent' %}
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            ⏳ Request Sent
+                        </span>
+                    {% elif connection_status == 'pending_received' %}
+                        <div class="flex space-x-2">
+                            <a href="{% url 'accept_connection' profile_user.id %}" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                                Accept
+                            </a>
+                            <a href="{% url 'reject_connection' profile_user.id %}" class="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                                Decline
+                            </a>
+                        </div>
+                    {% else %}
+                        <button onclick="document.getElementById('connectionModal').classList.remove('hidden')" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+                            Connect
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Bio -->
+                {% if profile.bio %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">About</h2>
+                        <p class="text-gray-700 leading-relaxed">{{ profile.bio }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Skills -->
+                {% if profile.skills %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Skills</h2>
+                        <div class="flex flex-wrap gap-2">
+                            {% for skill in profile.skills %}
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Education -->
+                {% if profile.education %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Education</h2>
+                        <p class="text-gray-700">{{ profile.education }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Interests -->
+                {% if profile.interests %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Interests</h2>
+                        <p class="text-gray-700">{{ profile.interests }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Hobbies -->
+                {% if profile.hobbies %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">Hobbies</h2>
+                        <p class="text-gray-700">{{ profile.hobbies }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Contact Info -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                    <div class="space-y-3">
+                        {% if profile.phone %}
+                            <div class="flex items-center text-gray-700">
+                                <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                </svg>
+                                {{ profile.phone }}
+                            </div>
+                        {% endif %}
+                        <div class="flex items-center text-gray-700">
+                            <svg class="w-5 h-5 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                            </svg>
+                            {{ profile_user.email }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certifications -->
+                {% if profile.certifications %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Certifications</h3>
+                        <p class="text-gray-700">{{ profile.certifications }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Recent Messages (if connected) -->
+                {% if is_connected and recent_messages %}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Messages</h3>
+                        <div class="space-y-3">
+                            {% for message in recent_messages %}
+                                <div class="text-sm">
+                                    <p class="text-gray-600">{{ message.message|truncatewords:10 }}</p>
+                                    <p class="text-gray-400 text-xs">{{ message.timestamp|timesince }} ago</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'direct_message' profile_user.id %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium mt-3 inline-block">
+                            View all messages →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Connection Request Modal -->
+<div id="connectionModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Send Connection Request</h3>
+            <form method="POST" action="{% url 'send_connection_request' profile_user.id %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Message (optional)</label>
+                    <textarea name="message" rows="3" placeholder="Write a personalized message to connect..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="document.getElementById('connectionModal').classList.add('hidden')" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Send Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,90 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block page_title %}Settings{% endblock %}
+
+{% block main_content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    <!-- Account Settings -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Account Settings</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between py-3 border-b border-gray-200">
+                <div>
+                    <h3 class="font-medium text-gray-900">Email Notifications</h3>
+                    <p class="text-sm text-gray-600">Receive email updates about your groups and activities</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+            
+            <div class="flex items-center justify-between py-3 border-b border-gray-200">
+                <div>
+                    <h3 class="font-medium text-gray-900">Push Notifications</h3>
+                    <p class="text-sm text-gray-600">Get notified about new messages and updates</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+            
+            <div class="flex items-center justify-between py-3">
+                <div>
+                    <h3 class="font-medium text-gray-900">Dark Mode</h3>
+                    <p class="text-sm text-gray-600">Switch to dark theme</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Privacy Settings -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Privacy Settings</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between py-3 border-b border-gray-200">
+                <div>
+                    <h3 class="font-medium text-gray-900">Profile Visibility</h3>
+                    <p class="text-sm text-gray-600">Make your profile visible to other users</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+            
+            <div class="flex items-center justify-between py-3">
+                <div>
+                    <h3 class="font-medium text-gray-900">Show Online Status</h3>
+                    <p class="text-sm text-gray-600">Let others see when you're online</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" checked>
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Danger Zone -->
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+        <h2 class="text-xl font-semibold text-red-600 mb-4">Danger Zone</h2>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between py-3">
+                <div>
+                    <h3 class="font-medium text-gray-900">Delete Account</h3>
+                    <p class="text-sm text-gray-600">Permanently delete your account and all data</p>
+                </div>
+                <button class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

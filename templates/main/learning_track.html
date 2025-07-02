@@ -1,0 +1,97 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block page_title %}Learning Track{% endblock %}
+
+{% block main_content %}
+<div class="space-y-8">
+    <!-- Create Learning Track Form -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Create New Learning Track</h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                {{ form.title }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                {{ form.description }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Difficulty</label>
+                {{ form.difficulty }}
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Create Track
+            </button>
+        </form>
+    </div>
+    
+    <!-- My Learning Tracks -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">My Learning Tracks</h2>
+        {% if tracks %}
+            <div class="space-y-4">
+                {% for track in tracks %}
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-gray-900">{{ track.title }}</h3>
+                            <span class="px-2 py-1 text-xs rounded-full 
+                                {% if track.difficulty == 'beginner' %}bg-green-100 text-green-800
+                                {% elif track.difficulty == 'intermediate' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ track.get_difficulty_display }}
+                            </span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">{{ track.description|truncatewords:30 }}</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-sm text-gray-600">Progress</span>
+                                <span class="text-sm text-gray-600">{{ track.progress }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: {{ track.progress }}%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Update Progress Form -->
+                        <form method="post" action="{% url 'update_progress' track.id %}" class="flex items-center space-x-2">
+                            {% csrf_token %}
+                            <input type="range" name="progress" min="0" max="100" value="{{ track.progress }}" 
+                                   class="flex-1" onchange="this.nextElementSibling.textContent = this.value + '%'">
+                            <span class="text-sm text-gray-600 w-12">{{ track.progress }}%</span>
+                            <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors">
+                                Update
+                            </button>
+                        </form>
+                        
+                        <div class="mt-2 text-xs text-gray-500">
+                            Created {{ track.created_at|date:"M d, Y" }}
+                            {% if track.completed %}
+                                <span class="text-green-600 font-semibold">• Completed!</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-600">You haven't created any learning tracks yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    input[type="text"], textarea, select {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+    }
+    
+    textarea {
+        resize: vertical;
+    }
+</style>
+{% endblock %}

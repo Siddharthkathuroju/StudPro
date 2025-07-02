@@ -1,0 +1,157 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block page_title %}Profile{% endblock %}
+
+{% block main_content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Profile Header -->
+    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 rounded-2xl p-8 mb-8 text-white">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="flex-shrink-0 mb-6 md:mb-0 md:mr-8">
+                {% if profile.avatar %}
+                <img class="h-32 w-32 rounded-full border-4 border-white shadow-lg" src="{{ profile.avatar.url }}" alt="{{ user.username }}">
+                {% else %}
+                <div class="h-32 w-32 rounded-full border-4 border-white shadow-lg bg-white bg-opacity-20 flex items-center justify-center">
+                    <span class="text-4xl font-bold text-white">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="text-center md:text-left">
+                <h1 class="text-3xl font-bold mb-2">{{ user.first_name }} {{ user.last_name }}</h1>
+                <p class="text-xl text-blue-100 mb-4">@{{ user.username }}</p>
+                {% if profile.bio %}
+                <p class="text-blue-100 max-w-md">{{ profile.bio }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Form -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Edit Profile</h2>
+            <p class="text-gray-600">Update your personal information and preferences</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Basic Information -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Basic Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Profile Picture</label>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0">
+                                {% if profile.avatar %}
+                                <img class="h-16 w-16 rounded-full" src="{{ profile.avatar.url }}" alt="Current avatar">
+                                {% else %}
+                                <div class="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center">
+                                    <span class="text-lg font-medium text-gray-600">{{ user.first_name|first }}{{ user.last_name|first }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <input type="file" name="avatar" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Bio</label>
+                        <textarea name="bio" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 resize-none" placeholder="Tell us about yourself...">{{ profile.bio }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    Contact Information
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Phone Number</label>
+                        <input type="tel" name="phone_number" value="{{ profile.phone_number }}" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" placeholder="+1 (555) 123-4567">
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Website</label>
+                        <input type="url" name="website" value="{{ profile.website }}" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" placeholder="https://yourwebsite.com">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    Education
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Institution</label>
+                        <input type="text" name="institution" value="{{ profile.institution }}" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" placeholder="University name">
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Major</label>
+                        <input type="text" name="major" value="{{ profile.major }}" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" placeholder="Your major">
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Graduation Year</label>
+                        <input type="number" name="graduation_year" value="{{ profile.graduation_year }}" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300" placeholder="2024">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills & Interests -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    Skills & Interests
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Skills</label>
+                        <textarea name="skills" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 resize-none" placeholder="List your technical skills...">{{ profile.skills }}</textarea>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-sm font-semibold text-gray-700">Interests</label>
+                        <textarea name="interests" rows="3" class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-300 resize-none" placeholder="What interests you?">{{ profile.interests }}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center pt-6">
+                <button type="submit" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

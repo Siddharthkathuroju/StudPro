@@ -1,0 +1,89 @@
+{% extends 'main/base_with_sidebar.html' %}
+
+{% block page_title %}Explore Groups{% endblock %}
+
+{% block main_content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Explore Groups</h1>
+        <p class="text-gray-600">Discover and join study groups that match your interests</p>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <form method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                {{ form.search }}
+            </div>
+            <div class="w-full md:w-48">
+                {{ form.privacy }}
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Groups Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for group in groups %}
+        <div class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+            <div class="p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-900">{{ group.name }}</h3>
+                    <span class="px-2 py-1 text-xs rounded-full {% if group.privacy == 'public' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                        {{ group.privacy|title }}
+                    </span>
+                </div>
+                
+                <p class="text-gray-600 mb-4 line-clamp-3">{{ group.description|default:"No description available" }}</p>
+                
+                <div class="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <span>{{ group.member_count }} members</span>
+                    <span>Created by {{ group.created_by.username }}</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">
+                        {% if group.is_full %}
+                            <span class="text-red-600">Group is full</span>
+                        {% else %}
+                            {{ group.max_members|add:"-"|add:group.member_count }} spots left
+                        {% endif %}
+                    </span>
+                    
+                    <div class="flex gap-2">
+                        <a href="{% url 'group_detail' group.id %}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            View Details
+                        </a>
+                        {% if not group.is_full %}
+                        <a href="{% url 'join_group' group.id %}" class="bg-green-600 text-white px-4 py-1 rounded text-sm hover:bg-green-700 transition-colors">
+                            Join
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="text-gray-500">
+                <i class="fas fa-search text-4xl mb-4"></i>
+                <p class="text-lg">No groups found</p>
+                <p class="text-sm">Try adjusting your search criteria or create a new group</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
+{% endblock %} 
