@@ -29,6 +29,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
 ]
+ALLOWED_HOSTS = [
+    os.environ.get("RENDER_EXTERNAL_HOSTNAME", "localhost"),
+    "127.0.0.1",
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
